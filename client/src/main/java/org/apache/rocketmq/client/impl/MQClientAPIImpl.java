@@ -183,7 +183,9 @@ public class MQClientAPIImpl {
         final ClientRemotingProcessor clientRemotingProcessor,
         RPCHook rpcHook, final ClientConfig clientConfig) {
         this.clientConfig = clientConfig;
+        // namesrv 地址获取器
         topAddressing = new TopAddressing(MixAll.getWSAddr(), clientConfig.getUnitName());
+        // 通信client
         this.remotingClient = new NettyRemotingClient(nettyClientConfig, null);
         this.clientRemotingProcessor = clientRemotingProcessor;
 

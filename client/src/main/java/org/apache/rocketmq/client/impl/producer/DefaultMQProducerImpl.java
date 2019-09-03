@@ -177,7 +177,8 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                 this.checkConfig();
 
                 if (!this.defaultMQProducer.getProducerGroup().equals(MixAll.CLIENT_INNER_PRODUCER_GROUP)) {
-                    // 如果不是内部的producer(type is MQProducerInner)并且instanceName没有设置，那么设置instanceName为pid
+                    // 如果不是内部的producer(type is MQProducerInner)维护的defaultMQProducer
+                    // 并且instanceName没有设置，那么设置instanceName为pid
                     this.defaultMQProducer.changeInstanceNameToPID();
                 }
 
