@@ -177,11 +177,14 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                 this.checkConfig();
 
                 if (!this.defaultMQProducer.getProducerGroup().equals(MixAll.CLIENT_INNER_PRODUCER_GROUP)) {
+                    // 如果不是内部的producer(type is MQProducerInner)并且instanceName没有设置，那么设置instanceName为pid
                     this.defaultMQProducer.changeInstanceNameToPID();
                 }
 
+                // MQClientInstance 按理来说一个进程一个 MQClientInstance ,一个进程可以初始化多个 MQProducer(DefaultMQProducer)
                 this.mQClientFactory = MQClientManager.getInstance().getAndCreateMQClientInstance(this.defaultMQProducer, rpcHook);
 
+                // MQClientInstance 对应多个 MQProducerInner
                 boolean registerOK = mQClientFactory.registerProducer(this.defaultMQProducer.getProducerGroup(), this);
                 if (!registerOK) {
                     this.serviceState = ServiceState.CREATE_JUST;
@@ -211,6 +214,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                 break;
         }
 
+        // 向所有broker发送心跳
         this.mQClientFactory.sendHeartbeatToAllBrokerWithLock();
     }
 
