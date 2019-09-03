@@ -40,6 +40,7 @@ import org.apache.rocketmq.srvutil.FileWatchService;
 
 
 public class NamesrvController {
+    // 默认为slf4j
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
 
     private final NamesrvConfig namesrvConfig;
@@ -77,11 +78,13 @@ public class NamesrvController {
 
         this.kvConfigManager.load();
 
+        // netty server bootstrap
         this.remotingServer = new NettyRemotingServer(this.nettyServerConfig, this.brokerHousekeepingService);
 
         this.remotingExecutor =
             Executors.newFixedThreadPool(nettyServerConfig.getServerWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
 
+        // 注册请求processor
         this.registerProcessor();
 
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {

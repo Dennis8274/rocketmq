@@ -16,8 +16,11 @@
  */
 package org.apache.rocketmq.remoting.netty;
 
+/**
+ * setter不能删，反射赋值要用到
+ */
 public class NettyServerConfig implements Cloneable {
-    private int listenPort = 8888;
+    private int listenPort = 8888;  // server 默认监听端口
     private int serverWorkerThreads = 8;
     private int serverCallbackExecutorThreads = 0;
     private int serverSelectorThreads = 3;

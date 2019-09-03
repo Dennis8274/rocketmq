@@ -26,8 +26,10 @@ import org.apache.rocketmq.logging.InternalLogger;
 
 public class StatsItem {
 
+    /* 数值 */
     private final AtomicLong value = new AtomicLong(0);
 
+    /* 次数 */
     private final AtomicLong times = new AtomicLong(0);
 
     private final LinkedList<CallSnapshot> csListMinute = new LinkedList<CallSnapshot>();

@@ -67,6 +67,7 @@ public class FileWatchService extends ServiceThread {
 
         while (!this.isStopped()) {
             try {
+                // 500ms 检查一次文件是否更新
                 this.waitForRunning(WATCH_INTERVAL);
 
                 for (int i = 0; i < watchFiles.size(); i++) {

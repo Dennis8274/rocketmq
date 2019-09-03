@@ -51,6 +51,7 @@ import org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 import org.apache.rocketmq.remoting.protocol.RemotingSysResponseCode;
 
+/* 根据requestCode分发请求 && 异步封装 */
 public abstract class NettyRemotingAbstract {
 
     /**
@@ -394,6 +395,7 @@ public abstract class NettyRemotingAbstract {
         }
     }
 
+    /* 同步调用 */
     public RemotingCommand invokeSyncImpl(final Channel channel, final RemotingCommand request,
         final long timeoutMillis)
         throws InterruptedException, RemotingSendRequestException, RemotingTimeoutException {
@@ -436,6 +438,7 @@ public abstract class NettyRemotingAbstract {
         }
     }
 
+    /* 异步调用 */
     public void invokeAsyncImpl(final Channel channel, final RemotingCommand request, final long timeoutMillis,
         final InvokeCallback invokeCallback)
         throws InterruptedException, RemotingTooMuchRequestException, RemotingTimeoutException, RemotingSendRequestException {
@@ -504,7 +507,7 @@ public abstract class NettyRemotingAbstract {
      * mark the request of the specified channel as fail and to invoke fail callback immediately
      * @param channel the channel which is close already
      */
-    protected void failFast(final Channel channel) {
+    protected void failFast(final Channel channel) {    // 快速失败
         Iterator<Entry<Integer, ResponseFuture>> it = responseTable.entrySet().iterator();
         while (it.hasNext()) {
             Entry<Integer, ResponseFuture> entry = it.next();

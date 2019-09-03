@@ -63,6 +63,7 @@ import org.apache.rocketmq.remoting.exception.RemotingTimeoutException;
 import org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
+/* 监听端口，注册各种event type(如connect close idle exception)的handler */
 public class NettyRemotingServer extends NettyRemotingAbstract implements RemotingServer {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
     private final ServerBootstrap serverBootstrap;
@@ -87,7 +88,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
     private HandshakeHandler handshakeHandler;
     private NettyEncoder encoder;
     private NettyConnectManageHandler connectionManageHandler;
-    private NettyServerHandler serverHandler;
+    private NettyServerHandler serverHandler;   // 具体逻辑在这里
 
     public NettyRemotingServer(final NettyServerConfig nettyServerConfig) {
         this(nettyServerConfig, null);
@@ -114,6 +115,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
             }
         });
 
+        // 是否用epoll方式
         if (useEpoll()) {
             this.eventLoopGroupBoss = new EpollEventLoopGroup(1, new ThreadFactory() {
                 private AtomicInteger threadIndex = new AtomicInteger(0);
@@ -193,6 +195,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
                 }
             });
 
+        // connectManager encoder handshakeHandler 以及具体逻辑的serverHandler
         prepareSharableHandlers();
 
         ServerBootstrap childHandler =
@@ -204,7 +207,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_SNDBUF, nettyServerConfig.getServerSocketSndBufSize())
                 .childOption(ChannelOption.SO_RCVBUF, nettyServerConfig.getServerSocketRcvBufSize())
-                .localAddress(new InetSocketAddress(this.nettyServerConfig.getListenPort()))
+                .localAddress(new InetSocketAddress(this.nettyServerConfig.getListenPort()))    // 监听端口，默认8888
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
@@ -232,10 +235,12 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
             throw new RuntimeException("this.serverBootstrap.bind().sync() InterruptedException", e1);
         }
 
+        // 处理netty连接
         if (this.channelEventListener != null) {
             this.nettyEventExecutor.start();
         }
 
+        // 过期的response 1s扫一次
         this.timer.scheduleAtFixedRate(new TimerTask() {
 
             @Override
@@ -288,6 +293,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
     }
 
     @Override
+    // 注册processor
     public void registerProcessor(int requestCode, NettyRequestProcessor processor, ExecutorService executor) {
         ExecutorService executorThis = executor;
         if (null == executor) {
@@ -299,6 +305,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
     }
 
     @Override
+    // 默认processor
     public void registerDefaultProcessor(NettyRequestProcessor processor, ExecutorService executor) {
         this.defaultRequestProcessor = new Pair<NettyRequestProcessor, ExecutorService>(processor, executor);
     }
