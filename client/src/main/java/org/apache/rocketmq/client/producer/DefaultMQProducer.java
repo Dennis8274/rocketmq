@@ -832,7 +832,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
             msgBatch = MessageBatch.generateFromList(msgs);
             for (Message message : msgBatch) {
                 Validators.checkMessage(message, this);
-                MessageClientIDSetter.setUniqID(message);
+                MessageClientIDSetter.setUniqID(message);   // 每条消息都设置个UniqID
                 message.setTopic(withNamespace(message.getTopic()));
             }
             msgBatch.setBody(msgBatch.encode());

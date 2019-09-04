@@ -458,6 +458,7 @@ public class MQClientAPIImpl {
         return null;
     }
 
+    // 具体同步调用的地方
     private SendResult sendMessageSync(
         final String addr,
         final String brokerName,
@@ -470,6 +471,7 @@ public class MQClientAPIImpl {
         return this.processSendResponse(brokerName, msg, response);
     }
 
+    // 具体异步调用的地方
     private void sendMessageAsync(
         final String addr,
         final String brokerName,

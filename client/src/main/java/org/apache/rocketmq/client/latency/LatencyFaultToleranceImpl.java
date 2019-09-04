@@ -106,7 +106,7 @@ public class LatencyFaultToleranceImpl implements LatencyFaultTolerance<String> 
         }
 
         @Override
-        public int compareTo(final FaultItem other) {
+        public int compareTo(final FaultItem other) {   // 倒序
             if (this.isAvailable() != other.isAvailable()) {
                 if (this.isAvailable())
                     return -1;

@@ -140,7 +140,10 @@ public class TransactionalMessageServiceImpl implements TransactionalMessageServ
                     continue;
                 }
 
+                /* 均表示已经完成的事务消息 */
+                // 表示小于当前half queue最小的offset
                 List<Long> doneOpOffset = new ArrayList<>();
+                // 表示大于当前half queue消费的offset <halfOffset,opOffset>
                 HashMap<Long, Long> removeMap = new HashMap<>();
                 PullResult pullResult = fillOpRemoveMap(removeMap, opQueue, opOffset, halfOffset, doneOpOffset);
                 if (null == pullResult) {
@@ -157,10 +160,10 @@ public class TransactionalMessageServiceImpl implements TransactionalMessageServ
                         log.info("Queue={} process time reach max={}", messageQueue, MAX_PROCESS_TIME_LIMIT);
                         break;
                     }
-                    if (removeMap.containsKey(i)) {
+                    if (removeMap.containsKey(i)) { // opQueue中包含i这条消息
                         log.info("Half offset {} has been committed/rolled back", i);
                         removeMap.remove(i);
-                    } else {
+                    } else {    // 不包含
                         GetResult getResult = getHalfMsg(messageQueue, i);
                         MessageExt msgExt = getResult.getMsg();
                         if (msgExt == null) {
@@ -213,7 +216,9 @@ public class TransactionalMessageServiceImpl implements TransactionalMessageServ
                         }
                         List<MessageExt> opMsg = pullResult.getMsgFoundList();
                         boolean isNeedCheck = (opMsg == null && valueOfCurrentMinusBorn > checkImmunityTime)
+                                // 顺序追加，时间也应该是先后递增的，超时
                             || (opMsg != null && (opMsg.get(opMsg.size() - 1).getBornTimestamp() - startTime > transactionTimeout))
+                                // 应该不会又这种情况
                             || (valueOfCurrentMinusBorn <= -1);
 
                         if (isNeedCheck) {

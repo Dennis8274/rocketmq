@@ -48,6 +48,11 @@ public class MessageClientIDSetter {
         COUNTER = new AtomicInteger(0);
     }
 
+
+    public static void main(String[] args) {
+        System.out.println(FIX_STRING);
+    }
+
     private synchronized static void setStartTime(long millis) {
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(millis);
