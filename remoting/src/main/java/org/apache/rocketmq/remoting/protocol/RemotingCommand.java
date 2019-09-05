@@ -69,11 +69,11 @@ public class RemotingCommand {
         }
     }
 
-    private int code;
+    private int code;   // requestCode 对应processor
     private LanguageCode language = LanguageCode.JAVA;
     private int version = 0;
     private int opaque = requestId.getAndIncrement();
-    private int flag = 0;
+    private int flag = 0;   // 对应request or response or oneway
     private String remark;
     private HashMap<String, String> extFields;
     private transient CommandCustomHeader customHeader;
@@ -212,10 +212,15 @@ public class RemotingCommand {
         byte[] result = new byte[4];
 
         result[0] = type.getCode();
-        result[1] = (byte) ((source >> 16) & 0xFF);
-        result[2] = (byte) ((source >> 8) & 0xFF);
-        result[3] = (byte) (source & 0xFF);
+        result[1] = (byte) ((source >> 16) & 0xFF); // 16-24
+        result[2] = (byte) ((source >> 8) & 0xFF);  // 8-16
+        result[3] = (byte) (source & 0xFF); // 0-8
         return result;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(0xF);
+        System.out.println(Integer.toBinaryString(0xF));
     }
 
     public void markResponseType() {

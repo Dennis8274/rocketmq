@@ -131,6 +131,7 @@ public class DefaultMessageStore implements MessageStore {
         this.storeStatsService = new StoreStatsService();
         this.indexService = new IndexService(this);
         if (!messageStoreConfig.isEnableDLegerCommitLog()) {
+            // 分布式协调时需要用到的haService
             this.haService = new HAService(this);
         } else {
             this.haService = null;
@@ -179,7 +180,7 @@ public class DefaultMessageStore implements MessageStore {
             log.info("last shutdown {}", lastExitOK ? "normally" : "abnormally");
 
             if (null != scheduleMessageService) {
-                result = result && this.scheduleMessageService.load();
+                result = result && this.scheduleMessageService.load();  // 加载定时消息的offset
             }
 
             // load Commit Log
@@ -1683,6 +1684,7 @@ public class DefaultMessageStore implements MessageStore {
 
                 for (ConcurrentMap<Integer, ConsumeQueue> maps : tables.values()) {
                     for (ConsumeQueue logic : maps.values()) {
+                        // consumerQueue里的File记录的commitLog的最大offset小于当前的commitLog的minOffset，那么就可以删了
                         int deleteCount = logic.deleteExpiredFile(minOffset);
 
                         if (deleteCount > 0 && deleteLogicsFilesInterval > 0) {
@@ -1694,6 +1696,7 @@ public class DefaultMessageStore implements MessageStore {
                     }
                 }
 
+                // 这个索引文件也是同样的道理
                 DefaultMessageStore.this.indexService.deleteExpiredFile(minOffset);
             }
         }

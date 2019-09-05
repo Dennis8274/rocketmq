@@ -52,11 +52,11 @@ public class MappedFile extends ReferenceResource {
     protected final AtomicInteger committedPosition = new AtomicInteger(0);
     private final AtomicInteger flushedPosition = new AtomicInteger(0);
     protected int fileSize;
-    protected FileChannel fileChannel;
+    protected FileChannel fileChannel;  // commit的时候才往这里写
     /**
      * Message will put to here first, and then reput to FileChannel if writeBuffer is not null.
      */
-    protected ByteBuffer writeBuffer = null;
+    protected ByteBuffer writeBuffer = null;    // 消息先往这里的buffer写，commit的时候才写到fileChannel
     protected TransientStorePool transientStorePool = null;
     private String fileName;
     private long fileFromOffset;
@@ -295,13 +295,13 @@ public class MappedFile extends ReferenceResource {
     }
 
     public int commit(final int commitLeastPages) {
-        if (writeBuffer == null) {
+        if (writeBuffer == null) {  // 采用的是mmap，没有用directBufferPool
             //no need to commit data to file channel, so just regard wrotePosition as committedPosition.
             return this.wrotePosition.get();
         }
         if (this.isAbleToCommit(commitLeastPages)) {
             if (this.hold()) {
-                commit0(commitLeastPages);
+                commit0(commitLeastPages);  // writeBuffer 往fileChannel里写
                 this.release();
             } else {
                 log.warn("in commit, hold failed, commit offset = " + this.committedPosition.get());
@@ -486,8 +486,9 @@ public class MappedFile extends ReferenceResource {
         ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
         int flush = 0;
         long time = System.currentTimeMillis();
+        // OS页大小4K
         for (int i = 0, j = 0; i < this.fileSize; i += MappedFile.OS_PAGE_SIZE, j++) {
-            byteBuffer.put(i, (byte) 0);
+            byteBuffer.put(i, (byte) 0);    // 每页写一个假值0，避免写时缺页
             // force flush when flush disk type is sync
             if (type == FlushDiskType.SYNC_FLUSH) {
                 if ((i / OS_PAGE_SIZE) - (flush / OS_PAGE_SIZE) >= pages) {
@@ -497,6 +498,7 @@ public class MappedFile extends ReferenceResource {
             }
 
             // prevent gc
+            // 让出cpu时间，线程就绪状态，等待调度
             if (j % 1000 == 0) {
                 log.info("j={}, costTime={}", j, System.currentTimeMillis() - time);
                 time = System.currentTimeMillis();
@@ -517,7 +519,7 @@ public class MappedFile extends ReferenceResource {
         log.info("mapped file warm-up done. mappedFile={}, costTime={}", this.getFileName(),
             System.currentTimeMillis() - beginTime);
 
-        this.mlock();
+        this.mlock();   // mlock锁定，防止被交换到swap&& 以及madvise预读页面
     }
 
     public String getFileName() {
@@ -549,11 +551,13 @@ public class MappedFile extends ReferenceResource {
         final long address = ((DirectBuffer) (this.mappedByteBuffer)).address();
         Pointer pointer = new Pointer(address);
         {
+            // 锁定，防止被交换到swap
             int ret = LibC.INSTANCE.mlock(pointer, new NativeLong(this.fileSize));
             log.info("mlock {} {} {} ret = {} time consuming = {}", address, this.fileName, this.fileSize, ret, System.currentTimeMillis() - beginTime);
         }
 
         {
+            // MADV_WILLNEED提前预热，预读一些页面，提高性能
             int ret = LibC.INSTANCE.madvise(pointer, new NativeLong(this.fileSize), LibC.MADV_WILLNEED);
             log.info("madvise {} {} {} ret = {} time consuming = {}", address, this.fileName, this.fileSize, ret, System.currentTimeMillis() - beginTime);
         }

@@ -228,10 +228,14 @@ public class BrokerController {
     }
 
     public boolean initialize() throws CloneNotSupportedException {
+        // topic 配置信息加载
         boolean result = this.topicConfigManager.load();
 
+        // 消费offset加载
         result = result && this.consumerOffsetManager.load();
+        // 订阅关系加载
         result = result && this.subscriptionGroupManager.load();
+        // 消费过滤器加载
         result = result && this.consumerFilterManager.load();
 
         if (result) {
@@ -254,12 +258,13 @@ public class BrokerController {
             }
         }
 
+        // 存储加载
         result = result && this.messageStore.load();
 
         if (result) {
             this.remotingServer = new NettyRemotingServer(this.nettyServerConfig, this.clientHousekeepingService);
             NettyServerConfig fastConfig = (NettyServerConfig) this.nettyServerConfig.clone();
-            fastConfig.setListenPort(nettyServerConfig.getListenPort() - 2);
+            fastConfig.setListenPort(nettyServerConfig.getListenPort() - 2);    // 10911 - 2 = 10909
             this.fastRemotingServer = new NettyRemotingServer(fastConfig, this.clientHousekeepingService);
             this.sendMessageExecutor = new BrokerFixedThreadPoolExecutor(
                 this.brokerConfig.getSendMessageThreadPoolNums(),
@@ -317,6 +322,7 @@ public class BrokerController {
                 Executors.newFixedThreadPool(this.brokerConfig.getConsumerManageThreadPoolNums(), new ThreadFactoryImpl(
                     "ConsumerManageThread_"));
 
+            // 注册一些请求processor
             this.registerProcessor();
 
             final long initialDelay = UtilAll.computeNextMorningTimeMillis() - System.currentTimeMillis();
@@ -325,7 +331,7 @@ public class BrokerController {
                 @Override
                 public void run() {
                     try {
-                        BrokerController.this.getBrokerStats().record();
+                        BrokerController.this.getBrokerStats().record();    // 每天统计一次
                     } catch (Throwable e) {
                         log.error("schedule record error.", e);
                     }
@@ -336,7 +342,7 @@ public class BrokerController {
                 @Override
                 public void run() {
                     try {
-                        BrokerController.this.consumerOffsetManager.persist();
+                        BrokerController.this.consumerOffsetManager.persist();  // consumerOffset 每5s记录一次
                     } catch (Throwable e) {
                         log.error("schedule persist consumerOffset error.", e);
                     }
@@ -347,7 +353,7 @@ public class BrokerController {
                 @Override
                 public void run() {
                     try {
-                        BrokerController.this.consumerFilterManager.persist();
+                        BrokerController.this.consumerFilterManager.persist();  // consumerFilter 每10s 记录一次
                     } catch (Throwable e) {
                         log.error("schedule persist consumer filter error.", e);
                     }
@@ -358,7 +364,7 @@ public class BrokerController {
                 @Override
                 public void run() {
                     try {
-                        BrokerController.this.protectBroker();
+                        BrokerController.this.protectBroker();  // 滞后的consumer，broker端主动断开关闭消费
                     } catch (Throwable e) {
                         log.error("protectBroker error.", e);
                     }
@@ -405,7 +411,7 @@ public class BrokerController {
                 }, 1000 * 10, 1000 * 60 * 2, TimeUnit.MILLISECONDS);
             }
 
-            if (!messageStoreConfig.isEnableDLegerCommitLog()) {
+            if (!messageStoreConfig.isEnableDLegerCommitLog()) {    // 这就是分布式同步做的事情了
                 if (BrokerRole.SLAVE == this.messageStoreConfig.getBrokerRole()) {
                     if (this.messageStoreConfig.getHaMasterAddress() != null && this.messageStoreConfig.getHaMasterAddress().length() >= 6) {
                         this.messageStore.updateHaMasterAddress(this.messageStoreConfig.getHaMasterAddress());
@@ -843,15 +849,15 @@ public class BrokerController {
         }
 
         if (this.pullRequestHoldService != null) {
-            this.pullRequestHoldService.start();
+            this.pullRequestHoldService.start();    //
         }
 
         if (this.clientHousekeepingService != null) {
-            this.clientHousekeepingService.start();
+            this.clientHousekeepingService.start(); // 客户端长连接
         }
 
         if (this.filterServerManager != null) {
-            this.filterServerManager.start();
+            this.filterServerManager.start();   // 过滤服务器
         }
 
         if (!messageStoreConfig.isEnableDLegerCommitLog()) {
@@ -868,7 +874,7 @@ public class BrokerController {
             @Override
             public void run() {
                 try {
-                    BrokerController.this.registerBrokerAll(true, false, brokerConfig.isForceRegister());
+                    BrokerController.this.registerBrokerAll(true, false, brokerConfig.isForceRegister());   // 定时向所有namesrv注册
                 } catch (Throwable e) {
                     log.error("registerBrokerAll Exception", e);
                 }
@@ -880,7 +886,7 @@ public class BrokerController {
         }
 
         if (this.brokerFastFailure != null) {
-            this.brokerFastFailure.start();
+            this.brokerFastFailure.start(); // broker的fastFail机制
         }
 
 
@@ -924,7 +930,7 @@ public class BrokerController {
             this.brokerConfig.getBrokerName(),
             this.brokerConfig.getBrokerId(),
             this.brokerConfig.getRegisterBrokerTimeoutMills())) {
-            doRegisterBrokerAll(checkOrderConfig, oneway, topicConfigWrapper);
+            doRegisterBrokerAll(checkOrderConfig, oneway, topicConfigWrapper);  // 向所有namesrv注册broker
         }
     }
 

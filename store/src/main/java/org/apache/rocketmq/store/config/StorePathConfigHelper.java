@@ -20,6 +20,7 @@ import java.io.File;
 
 public class StorePathConfigHelper {
 
+    // consumequeue/topic/queueId/
     public static String getStorePathConsumeQueue(final String rootDir) {
         return rootDir + File.separator + "consumequeue";
     }

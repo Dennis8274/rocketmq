@@ -63,7 +63,7 @@ public class BrokerFastFailure {
     }
 
     private void cleanExpiredRequest() {
-        while (this.brokerController.getMessageStore().isOSPageCacheBusy()) {
+        while (this.brokerController.getMessageStore().isOSPageCacheBusy()) {   // os PageCache 不足时，fastFail
             try {
                 if (!this.brokerController.getSendThreadPoolQueue().isEmpty()) {
                     final Runnable runnable = this.brokerController.getSendThreadPoolQueue().poll(0, TimeUnit.SECONDS);
@@ -79,6 +79,8 @@ public class BrokerFastFailure {
             } catch (Throwable ignored) {
             }
         }
+
+        /* 清理超时的请求 */
 
         cleanExpiredRequestInQueue(this.brokerController.getSendThreadPoolQueue(),
             this.brokerController.getBrokerConfig().getWaitTimeMillsInSendQueue());

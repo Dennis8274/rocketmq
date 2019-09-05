@@ -32,6 +32,7 @@ public abstract class ConfigManager {
             fileName = this.configFilePath();
             String jsonString = MixAll.file2String(fileName);
 
+            // 备份文件(*.bak)有没有这个文件
             if (null == jsonString || jsonString.length() == 0) {
                 return this.loadBak();
             } else {

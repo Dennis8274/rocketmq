@@ -66,6 +66,7 @@ public class TransientStorePool {
         }
     }
 
+    // return 和 borrow 都是从头部取
     public void returnBuffer(ByteBuffer byteBuffer) {
         byteBuffer.position(0);
         byteBuffer.limit(fileSize);

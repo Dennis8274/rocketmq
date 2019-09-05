@@ -113,7 +113,7 @@ public class BrokerStartup {
 
             nettyClientConfig.setUseTLS(Boolean.parseBoolean(System.getProperty(TLS_ENABLE,
                 String.valueOf(TlsSystemConfig.tlsMode == TlsMode.ENFORCING))));
-            nettyServerConfig.setListenPort(10911);
+            nettyServerConfig.setListenPort(10911); // broker监听10911
             final MessageStoreConfig messageStoreConfig = new MessageStoreConfig();
 
             if (BrokerRole.SLAVE == messageStoreConfig.getBrokerRole()) {
@@ -178,7 +178,8 @@ public class BrokerStartup {
                     break;
             }
 
-            messageStoreConfig.setHaListenPort(nettyServerConfig.getListenPort() + 1);
+            messageStoreConfig.setHaListenPort(nettyServerConfig.getListenPort() + 1);  // 10912 haServer 这是啥
+            // 日志配置
             LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
             JoranConfigurator configurator = new JoranConfigurator();
             configurator.setContext(lc);

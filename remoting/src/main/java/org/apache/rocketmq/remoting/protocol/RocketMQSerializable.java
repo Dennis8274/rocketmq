@@ -46,13 +46,13 @@ public class RocketMQSerializable {
 
         ByteBuffer headerBuffer = ByteBuffer.allocate(totalLen);
         // int code(~32767)
-        headerBuffer.putShort((short) cmd.getCode());
+        headerBuffer.putShort((short) cmd.getCode());   // requestCode
         // LanguageCode language
         headerBuffer.put(cmd.getLanguage().getCode());
         // int version(~32767)
         headerBuffer.putShort((short) cmd.getVersion());
         // int opaque
-        headerBuffer.putInt(cmd.getOpaque());
+        headerBuffer.putInt(cmd.getOpaque());   // 标识同一个channel里的请求和应答
         // int flag
         headerBuffer.putInt(cmd.getFlag());
         // String remark
