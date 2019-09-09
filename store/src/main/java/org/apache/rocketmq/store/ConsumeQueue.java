@@ -88,7 +88,7 @@ public class ConsumeQueue {
         final List<MappedFile> mappedFiles = this.mappedFileQueue.getMappedFiles();
         if (!mappedFiles.isEmpty()) {
 
-            int index = mappedFiles.size() - 3;
+            int index = mappedFiles.size() - 3; // 从最新的3个文件开始恢复
             if (index < 0)
                 index = 0;
 

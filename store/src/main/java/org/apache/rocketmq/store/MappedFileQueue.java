@@ -209,12 +209,12 @@ public class MappedFileQueue {
                 + UtilAll.offset2FileName(createOffset + this.mappedFileSize);
             MappedFile mappedFile = null;
 
-            if (this.allocateMappedFileService != null) {
+            if (this.allocateMappedFileService != null) {   // 从storeBufferPool中取file,注意同时申请两个MappedFile
                 mappedFile = this.allocateMappedFileService.putRequestAndReturnMappedFile(nextFilePath,
                     nextNextFilePath, this.mappedFileSize);
             } else {
                 try {
-                    mappedFile = new MappedFile(nextFilePath, this.mappedFileSize);
+                    mappedFile = new MappedFile(nextFilePath, this.mappedFileSize); // 没有pool， 只能手动申请 用mappedBuffer
                 } catch (IOException e) {
                     log.error("create mappedFile exception", e);
                 }

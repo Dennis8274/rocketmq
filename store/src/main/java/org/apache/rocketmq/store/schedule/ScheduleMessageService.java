@@ -122,7 +122,7 @@ public class ScheduleMessageService extends ConfigManager {
                 }
 
                 if (timeDelay != null) {
-                    this.timer.schedule(new DeliverDelayedMessageTimerTask(level, offset), FIRST_DELAY_TIME);
+                    this.timer.schedule(new DeliverDelayedMessageTimerTask(level, offset), FIRST_DELAY_TIME);   // 延迟1s执行
                 }
             }
 
@@ -131,7 +131,7 @@ public class ScheduleMessageService extends ConfigManager {
                 @Override
                 public void run() {
                     try {
-                        if (started.get()) ScheduleMessageService.this.persist();
+                        if (started.get()) ScheduleMessageService.this.persist();   // 默认每10s flush一下delay offset
                     } catch (Throwable e) {
                         log.error("scheduleAtFixedRate flush exception", e);
                     }
@@ -307,7 +307,7 @@ public class ScheduleMessageService extends ConfigManager {
                                         MessageExtBrokerInner msgInner = this.messageTimeup(msgExt);
                                         PutMessageResult putMessageResult =
                                             ScheduleMessageService.this.writeMessageStore
-                                                .putMessage(msgInner);
+                                                .putMessage(msgInner);  // 往commitLog里再写一条正常的消息
 
                                         if (putMessageResult != null
                                             && putMessageResult.getPutMessageStatus() == PutMessageStatus.PUT_OK) {

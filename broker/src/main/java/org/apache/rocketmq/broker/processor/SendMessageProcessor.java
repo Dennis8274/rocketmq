@@ -255,7 +255,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
                                       RemotingCommand request,
                                       MessageExt msg, TopicConfig topicConfig) {
         String newTopic = requestHeader.getTopic();
-        if (null != newTopic && newTopic.startsWith(MixAll.RETRY_GROUP_TOPIC_PREFIX)) {
+        if (null != newTopic && newTopic.startsWith(MixAll.RETRY_GROUP_TOPIC_PREFIX)) { // 重试消息
             String groupName = newTopic.substring(MixAll.RETRY_GROUP_TOPIC_PREFIX.length());
             SubscriptionGroupConfig subscriptionGroupConfig =
                 this.brokerController.getSubscriptionGroupManager().findSubscriptionGroupConfig(groupName);
@@ -288,7 +288,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
             }
         }
         int sysFlag = requestHeader.getSysFlag();
-        if (TopicFilterType.MULTI_TAG == topicConfig.getTopicFilterType()) {
+        if (TopicFilterType.MULTI_TAG == topicConfig.getTopicFilterType()) {    // 多个tag
             sysFlag |= MessageSysFlag.MULTI_TAGS_FLAG;
         }
         msg.setSysFlag(sysFlag);
@@ -329,7 +329,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
         TopicConfig topicConfig = this.brokerController.getTopicConfigManager().selectTopicConfig(requestHeader.getTopic());
 
         if (queueIdInt < 0) {
-            queueIdInt = Math.abs(this.random.nextInt() % 99999999) % topicConfig.getWriteQueueNums();
+            queueIdInt = Math.abs(this.random.nextInt() % 99999999) % topicConfig.getWriteQueueNums();  // 未指定 则随机选个queue写
         }
 
         MessageExtBrokerInner msgInner = new MessageExtBrokerInner();
@@ -352,16 +352,16 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
         Map<String, String> oriProps = MessageDecoder.string2messageProperties(requestHeader.getProperties());
         String traFlag = oriProps.get(MessageConst.PROPERTY_TRANSACTION_PREPARED);
         if (traFlag != null && Boolean.parseBoolean(traFlag)) {
-            if (this.brokerController.getBrokerConfig().isRejectTransactionMessage()) {
+            if (this.brokerController.getBrokerConfig().isRejectTransactionMessage()) { // 可以配置broker不接收事务消息
                 response.setCode(ResponseCode.NO_PERMISSION);
                 response.setRemark(
                     "the broker[" + this.brokerController.getBrokerConfig().getBrokerIP1()
                         + "] sending transaction message is forbidden");
                 return response;
             }
-            putMessageResult = this.brokerController.getTransactionalMessageService().prepareMessage(msgInner);
+            putMessageResult = this.brokerController.getTransactionalMessageService().prepareMessage(msgInner); // 事务消息，halfMessage endTransaction 是putOpsMessage
         } else {
-            putMessageResult = this.brokerController.getMessageStore().putMessage(msgInner);
+            putMessageResult = this.brokerController.getMessageStore().putMessage(msgInner);    // append commit log
         }
 
         return handlePutMessageResult(putMessageResult, response, request, msgInner, responseHeader, sendMessageContext, ctx, queueIdInt);

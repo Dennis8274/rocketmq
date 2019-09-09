@@ -196,8 +196,8 @@ public class TransactionalMessageBridge {
             String.valueOf(msgInner.getQueueId()));
         msgInner.setSysFlag(
             MessageSysFlag.resetTransactionValue(msgInner.getSysFlag(), MessageSysFlag.TRANSACTION_NOT_TYPE));
-        msgInner.setTopic(TransactionalMessageUtil.buildHalfTopic());
-        msgInner.setQueueId(0);
+        msgInner.setTopic(TransactionalMessageUtil.buildHalfTopic());   // 事务消息的half message 是改变topic
+        msgInner.setQueueId(0); // 事务消息的half message只有一个queue
         msgInner.setPropertiesString(MessageDecoder.messageProperties2String(msgInner.getProperties()));
         return msgInner;
     }

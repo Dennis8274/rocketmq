@@ -233,7 +233,7 @@ public abstract class NettyRemotingAbstract {
                 }
             };
 
-            if (pair.getObject1().rejectRequest()) {
+            if (pair.getObject1().rejectRequest()) {    // os PageCache 抢占不足 及 启用了storeBufferPoll且poll资源不足,以上两种情况就会拒绝
                 final RemotingCommand response = RemotingCommand.createResponseCommand(RemotingSysResponseCode.SYSTEM_BUSY,
                     "[REJECTREQUEST]system busy, start flow control for a while");
                 response.setOpaque(opaque);

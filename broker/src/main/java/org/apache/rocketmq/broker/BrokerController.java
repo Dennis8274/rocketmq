@@ -118,10 +118,10 @@ public class BrokerController {
     private final ConsumerManager consumerManager;
     private final ConsumerFilterManager consumerFilterManager;
     private final ProducerManager producerManager;
-    private final ClientHousekeepingService clientHousekeepingService;
-    private final PullMessageProcessor pullMessageProcessor;
-    private final PullRequestHoldService pullRequestHoldService;
-    private final MessageArrivingListener messageArrivingListener;
+    private final ClientHousekeepingService clientHousekeepingService;  // 客户端连接保持
+    private final PullMessageProcessor pullMessageProcessor;    // 拉取请求处理
+    private final PullRequestHoldService pullRequestHoldService;    // 没有消息保持住请求
+    private final MessageArrivingListener messageArrivingListener;  // 有消息来了，需要恢复hang住的请求
     private final Broker2Client broker2Client;
     private final SubscriptionGroupManager subscriptionGroupManager;
     private final ConsumerIdsChangeListener consumerIdsChangeListener;
@@ -879,6 +879,7 @@ public class BrokerController {
                     log.error("registerBrokerAll Exception", e);
                 }
             }
+            // 默认 30s [10s,60]
         }, 1000 * 10, Math.max(10000, Math.min(brokerConfig.getRegisterNameServerPeriod(), 60000)), TimeUnit.MILLISECONDS);
 
         if (this.brokerStatsManager != null) {
@@ -936,7 +937,7 @@ public class BrokerController {
 
     private void doRegisterBrokerAll(boolean checkOrderConfig, boolean oneway,
         TopicConfigSerializeWrapper topicConfigWrapper) {
-        List<RegisterBrokerResult> registerBrokerResultList = this.brokerOuterAPI.registerBrokerAll(
+        List<RegisterBrokerResult> registerBrokerResultList = this.brokerOuterAPI.registerBrokerAll(    // 所有namesrv注册broker
             this.brokerConfig.getBrokerClusterName(),
             this.getBrokerAddr(),
             this.brokerConfig.getBrokerName(),
@@ -1123,7 +1124,7 @@ public class BrokerController {
                 @Override
                 public void run() {
                     try {
-                        BrokerController.this.slaveSynchronize.syncAll();
+                        BrokerController.this.slaveSynchronize.syncAll();   // slave 定时10s向master同步数据
                     }
                     catch (Throwable e) {
                         log.error("ScheduledTask SlaveSynchronize syncAll error.", e);

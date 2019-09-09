@@ -73,7 +73,7 @@ public class RemotingCommand {
     private LanguageCode language = LanguageCode.JAVA;
     private int version = 0;
     private int opaque = requestId.getAndIncrement();
-    private int flag = 0;   // 对应request or response or oneway
+    private int flag = 0;   // 对应 0-request or 1-response or 2-oneway
     private String remark;
     private HashMap<String, String> extFields;
     private transient CommandCustomHeader customHeader;
