@@ -51,13 +51,13 @@ public class AllocateMessageQueueAveragely implements AllocateMessageQueueStrate
             return result;
         }
 
-        int index = cidAll.indexOf(currentCID);
-        int mod = mqAll.size() % cidAll.size();
-        int averageSize =
+        int index = cidAll.indexOf(currentCID); // 2
+        int mod = mqAll.size() % cidAll.size(); // 5 % 10 = 5
+        int averageSize =   // 1
             mqAll.size() <= cidAll.size() ? 1 : (mod > 0 && index < mod ? mqAll.size() / cidAll.size()
                 + 1 : mqAll.size() / cidAll.size());
-        int startIndex = (mod > 0 && index < mod) ? index * averageSize : index * averageSize + mod;
-        int range = Math.min(averageSize, mqAll.size() - startIndex);
+        int startIndex = (mod > 0 && index < mod) ? index * averageSize : index * averageSize + mod;    // 7
+        int range = Math.min(averageSize, mqAll.size() - startIndex);   // 1
         for (int i = 0; i < range; i++) {
             result.add(mqAll.get((startIndex + i) % mqAll.size()));
         }

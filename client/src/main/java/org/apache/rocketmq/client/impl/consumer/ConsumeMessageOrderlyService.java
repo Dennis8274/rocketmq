@@ -90,7 +90,7 @@ public class ConsumeMessageOrderlyService implements ConsumeMessageService {
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
                 @Override
                 public void run() {
-                    ConsumeMessageOrderlyService.this.lockMQPeriodically();
+                    ConsumeMessageOrderlyService.this.lockMQPeriodically(); // 定时lock?
                 }
             }, 1000 * 1, ProcessQueue.REBALANCE_LOCK_INTERVAL, TimeUnit.MILLISECONDS);
         }
@@ -325,7 +325,7 @@ public class ConsumeMessageOrderlyService implements ConsumeMessageService {
         }
 
         if (commitOffset >= 0 && !consumeRequest.getProcessQueue().isDropped()) {
-            this.defaultMQPushConsumerImpl.getOffsetStore().updateOffset(consumeRequest.getMessageQueue(), commitOffset, false);
+            this.defaultMQPushConsumerImpl.getOffsetStore().updateOffset(consumeRequest.getMessageQueue(), commitOffset, false);    // 更新offset
         }
 
         return continueConsume;
@@ -419,8 +419,8 @@ public class ConsumeMessageOrderlyService implements ConsumeMessageService {
 
             final Object objLock = messageQueueLock.fetchLockObject(this.messageQueue);
             synchronized (objLock) {
-                if (MessageModel.BROADCASTING.equals(ConsumeMessageOrderlyService.this.defaultMQPushConsumerImpl.messageModel())
-                    || (this.processQueue.isLocked() && !this.processQueue.isLockExpired())) {
+                if (MessageModel.BROADCASTING.equals(ConsumeMessageOrderlyService.this.defaultMQPushConsumerImpl.messageModel())    // 广播消息
+                    || (this.processQueue.isLocked() && !this.processQueue.isLockExpired())) {  // 或者被锁住,只有锁住了才能消费
                     final long beginTime = System.currentTimeMillis();
                     for (boolean continueConsume = true; continueConsume; ) {
                         if (this.processQueue.isDropped()) {
@@ -451,7 +451,7 @@ public class ConsumeMessageOrderlyService implements ConsumeMessageService {
                         final int consumeBatchSize =
                             ConsumeMessageOrderlyService.this.defaultMQPushConsumer.getConsumeMessageBatchMaxSize();
 
-                        List<MessageExt> msgs = this.processQueue.takeMessags(consumeBatchSize);
+                        List<MessageExt> msgs = this.processQueue.takeMessags(consumeBatchSize);    // 从processQueue取消息
                         defaultMQPushConsumerImpl.resetRetryAndNamespace(msgs, defaultMQPushConsumer.getConsumerGroup());
                         if (!msgs.isEmpty()) {
                             final ConsumeOrderlyContext context = new ConsumeOrderlyContext(this.messageQueue);
@@ -483,7 +483,7 @@ public class ConsumeMessageOrderlyService implements ConsumeMessageService {
                                     break;
                                 }
 
-                                status = messageListener.consumeMessage(Collections.unmodifiableList(msgs), context);
+                                status = messageListener.consumeMessage(Collections.unmodifiableList(msgs), context);   // 消费消息
                             } catch (Throwable e) {
                                 log.warn("consumeMessage exception: {} Group: {} Msgs: {} MQ: {}",
                                     RemotingHelper.exceptionSimpleDesc(e),

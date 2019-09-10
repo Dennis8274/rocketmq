@@ -99,7 +99,7 @@ public class ProcessQueue {
 
             try {
 
-                pushConsumer.sendMessageBack(msg, 3);
+                pushConsumer.sendMessageBack(msg, 3);   // 消费失败(),发送back(retryTopic)的延迟消息
                 log.info("send expire msg back. topic={}, msgId={}, storeHost={}, queueId={}, queueOffset={}", msg.getTopic(), msg.getMsgId(), msg.getStoreHost(), msg.getQueueId(), msg.getQueueOffset());
                 try {
                     this.lockTreeMap.writeLock().lockInterruptibly();

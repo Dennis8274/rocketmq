@@ -85,12 +85,12 @@ public class RebalancePushImpl extends RebalanceImpl {
     public boolean removeUnnecessaryMessageQueue(MessageQueue mq, ProcessQueue pq) {
         this.defaultMQPushConsumerImpl.getOffsetStore().persist(mq);
         this.defaultMQPushConsumerImpl.getOffsetStore().removeOffset(mq);
-        if (this.defaultMQPushConsumerImpl.isConsumeOrderly()
-            && MessageModel.CLUSTERING.equals(this.defaultMQPushConsumerImpl.messageModel())) {
+        if (this.defaultMQPushConsumerImpl.isConsumeOrderly()   // 有序
+            && MessageModel.CLUSTERING.equals(this.defaultMQPushConsumerImpl.messageModel())) { // 不是广播
             try {
                 if (pq.getLockConsume().tryLock(1000, TimeUnit.MILLISECONDS)) {
                     try {
-                        return this.unlockDelay(mq, pq);
+                        return this.unlockDelay(mq, pq);    // unlock
                     } finally {
                         pq.getLockConsume().unlock();
                     }
@@ -112,7 +112,7 @@ public class RebalancePushImpl extends RebalanceImpl {
 
     private boolean unlockDelay(final MessageQueue mq, final ProcessQueue pq) {
 
-        if (pq.hasTempMessage()) {
+        if (pq.hasTempMessage()) {  // 还有消息
             log.info("[{}]unlockDelay, begin {} ", mq.hashCode(), mq);
             this.defaultMQPushConsumerImpl.getmQClientFactory().getScheduledExecutorService().schedule(new Runnable() {
                 @Override
@@ -122,7 +122,7 @@ public class RebalancePushImpl extends RebalanceImpl {
                 }
             }, UNLOCK_DELAY_TIME_MILLS, TimeUnit.MILLISECONDS);
         } else {
-            this.unlock(mq, true);
+            this.unlock(mq, true);  // unlock
         }
         return true;
     }
