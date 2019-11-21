@@ -85,6 +85,7 @@ public class ProcessQueue {
                 this.lockTreeMap.readLock().lockInterruptibly();
                 try {
                     if (!msgTreeMap.isEmpty() && System.currentTimeMillis() - Long.parseLong(MessageAccessor.getConsumeStartTimeStamp(msgTreeMap.firstEntry().getValue())) > pushConsumer.getConsumeTimeout() * 60 * 1000) {
+                        // 过期
                         msg = msgTreeMap.firstEntry().getValue();
                     } else {
 

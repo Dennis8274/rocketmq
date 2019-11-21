@@ -81,7 +81,7 @@ public class PullAPIWrapper {
                 msgListFilterAgain = new ArrayList<MessageExt>(msgList.size());
                 for (MessageExt msg : msgList) {
                     if (msg.getTags() != null) {
-                        if (subscriptionData.getTagsSet().contains(msg.getTags())) {
+                        if (subscriptionData.getTagsSet().contains(msg.getTags())) {    //  校验tags是否一致
                             msgListFilterAgain.add(msg);
                         }
                     }

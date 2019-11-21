@@ -263,10 +263,10 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
                     ackIndex = consumeRequest.getMsgs().size() - 1;
                 }
                 int ok = ackIndex + 1;
-                int failed = consumeRequest.getMsgs().size() - ok;
-                this.getConsumerStatsManager().incConsumeOKTPS(consumerGroup, consumeRequest.getMessageQueue().getTopic(), ok);
-                this.getConsumerStatsManager().incConsumeFailedTPS(consumerGroup, consumeRequest.getMessageQueue().getTopic(), failed);
-                break;
+            int failed = consumeRequest.getMsgs().size() - ok;
+            this.getConsumerStatsManager().incConsumeOKTPS(consumerGroup, consumeRequest.getMessageQueue().getTopic(), ok);
+            this.getConsumerStatsManager().incConsumeFailedTPS(consumerGroup, consumeRequest.getMessageQueue().getTopic(), failed);
+            break;
             case RECONSUME_LATER:
                 ackIndex = -1;
                 this.getConsumerStatsManager().incConsumeFailedTPS(consumerGroup, consumeRequest.getMessageQueue().getTopic(),

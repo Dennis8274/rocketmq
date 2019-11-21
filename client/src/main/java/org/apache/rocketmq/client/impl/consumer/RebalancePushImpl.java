@@ -157,7 +157,7 @@ public class RebalancePushImpl extends RebalanceImpl {
                         result = 0L;
                     } else {
                         try {
-                            result = this.mQClientFactory.getMQAdminImpl().maxOffset(mq);
+                            result = this.mQClientFactory.getMQAdminImpl().maxOffset(mq);   //  初始从最新的offset开始消费
                         } catch (MQClientException e) {
                             result = -1;
                         }
