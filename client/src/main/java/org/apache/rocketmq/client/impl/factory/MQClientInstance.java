@@ -245,7 +245,7 @@ public class MQClientInstance {
                     // Start request-response channel
                     this.mQClientAPIImpl.start();
                     // Start various schedule tasks
-                    this.startScheduledTask();
+                    this.startScheduledTask();  // 包括不限于：向broker发送心跳,定时从namesrv获取topic 的 routeData
                     // Start pull service
                     this.pullMessageService.start();    // 开始消费
                     // Start rebalance service
@@ -287,7 +287,7 @@ public class MQClientInstance {
             @Override
             public void run() {
                 try {
-                    MQClientInstance.this.updateTopicRouteInfoFromNameServer(); // 定时获取topicRouteInfo
+                    MQClientInstance.this.updateTopicRouteInfoFromNameServer(); // 定时从namesrv获取topicRouteInfo
                 } catch (Exception e) {
                     log.error("ScheduledTask updateTopicRouteInfoFromNameServer exception", e);
                 }
@@ -299,8 +299,8 @@ public class MQClientInstance {
             @Override
             public void run() {
                 try {
-                    MQClientInstance.this.cleanOfflineBroker(); // 每30s清理下线的机器
-                    MQClientInstance.this.sendHeartbeatToAllBrokerWithLock();   // 发送心跳给所有broker
+                    MQClientInstance.this.cleanOfflineBroker(); // 每30s清理下线的机器,依赖前边拿到的routeInfo
+                    MQClientInstance.this.sendHeartbeatToAllBrokerWithLock();   // 发送心跳给所有broker(client对应的brokers),心跳包中携带producer/consumer信息
                 } catch (Exception e) {
                     log.error("ScheduledTask sendHeartbeatToAllBroker exception", e);
                 }
@@ -324,7 +324,7 @@ public class MQClientInstance {
             @Override
             public void run() {
                 try {
-                    MQClientInstance.this.adjustThreadPool();   // 这个定时任务没有用到啊
+                    MQClientInstance.this.adjustThreadPool();   // 调整client的线程池
                 } catch (Exception e) {
                     log.error("ScheduledTask adjustThreadPool exception", e);
                 }
@@ -482,7 +482,7 @@ public class MQClientInstance {
     public void sendHeartbeatToAllBrokerWithLock() {
         if (this.lockHeartbeat.tryLock()) {
             try {
-                this.sendHeartbeatToAllBroker();    // 发送心跳给所有broker
+                this.sendHeartbeatToAllBroker();    // 发送心跳给所有broker(client对应brokers),如果是producer，是发给master
                 this.uploadFilterClassSource();
             } catch (final Exception e) {
                 log.error("sendHeartbeatToAllBroker exception", e);

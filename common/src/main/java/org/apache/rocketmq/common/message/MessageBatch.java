@@ -54,7 +54,7 @@ public class MessageBatch extends Message implements Iterable<Message> {
             if (first == null) {
                 first = message;
             } else {
-                if (!first.getTopic().equals(message.getTopic())) { // 批量的所有消息topic要一直
+                if (!first.getTopic().equals(message.getTopic())) { // 批量的所有消息topic要一致
                     throw new UnsupportedOperationException("The topic of the messages in one batch should be the same");
                 }
                 if (first.isWaitStoreMsgOK() != message.isWaitStoreMsgOK()) {   // 批量的所有消息是否wait直到落盘
